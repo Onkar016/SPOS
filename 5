@@ -1,0 +1,199 @@
+Assignment 5
+1.FIFO
+import java.io.*;
+class FIFO {
+public static void main(String[] args) throws IOException {
+// Number of frames and inputs
+int numFrames;
+int numInputs;
+float hitRatio;
+// BufferedReader for user input
+BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+// Get the number of frames from the user
+System.out.print("Enter the number of FRAMES: ");
+numFrames = Integer.parseInt(br.readLine());
+// Initialize FIFO array and other variables
+int[] fifo = new int[numFrames];
+for (int i = 0; i < numFrames; i++) {
+fifo[i] = -1; // Initially set all frames to -1 (empty)
+}
+// Get the number of inputs from the user
+System.out.print("Enter the number of INPUTS: ");
+numInputs = Integer.parseInt(br.readLine());
+int[] inputs = new int[numInputs];
+// Get the input page references
+System.out.println("Enter INPUT: ");
+for (int i = 0; i < numInputs; i++) {
+inputs[i] = Integer.parseInt(br.readLine());
+}
+// Variables to track hits and faults
+int hits = 0;
+int faults = 0;
+int j = 0; // Frame index for FIFO replacement
+boolean isHit;
+// Process each input
+for (int i = 0; i < numInputs; i++) {
+isHit = false;
+// Check if the page is already in one of the frames
+for (int k = 0; k < numFrames; k++) {
+if (fifo[k] == inputs[i]) {
+isHit = true;
+hits++;
+break; // Page is found; exit the loop
+}
+}
+// If the page is not found, it's a fault
+if (!isHit) {
+fifo[j] = inputs[i]; // Replace old page with new page
+j++; // Move to the next frame index
+if (j >= numFrames) {
+j = 0; // Wrap around to the start
+}
+faults++;
+}
+}
+// Calculate hit ratio
+hitRatio = (float) hits / (float) numInputs;
+// Output results
+System.out.println("HITS: " + hits);
+System.out.println("FAULTS: " + faults);
+System.out.printf("HIT RATIO: %.2f\n", hitRatio); // Format to two decimal places
+}
+}
+OUTPUT
+2. LRU
+import java.util.ArrayList;
+import java.util.Scanner;
+public class LRU {
+public static void main(String[] args) {
+Scanner scanner = new Scanner(System.in);
+// Accept number of frames from the user
+System.out.print("Enter How Many Frames You Want: ");
+int frameCount = scanner.nextInt();
+// Accept number of pages from the user
+System.out.print("How Many Pages You Want: ");
+int pageCount = scanner.nextInt();
+// Accept the pages to be referenced
+System.out.print("Enter Pages: ");
+int[] pages = new int[pageCount];
+for (int i = 0; i < pageCount; i++) {
+pages[i] = scanner.nextInt();
+}
+ArrayList<Integer> frameList = new ArrayList<>(frameCount);
+int pageFaults = 0;
+// Process each page reference
+for (int page : pages) {
+// If the page is not already in the frame list
+if (!frameList.contains(page)) {
+// If we haven't filled all frames yet
+if (frameList.size() < frameCount) {
+frameList.add(page); // Add the page to the list
+} else {
+frameList.remove(0); // Remove the least recently used page
+frameList.add(page); // Add the new page
+}
+pageFaults++; // Increment page fault count
+} else {
+// If the page is already in the frame list, remove it
+frameList.remove((Integer) page);
+frameList.add(page); // Add it back to the end to mark it as recently used
+}
+}
+// Output the total number of page faults
+System.out.println("Page Faults: " + pageFaults);
+// Close the scanner
+scanner.close();
+}
+}
+OUTPUT
+3. Optimal:
+import java.util.*;
+import java.io.*;
+public class OptimalPageReplacement {
+public static void main(String[] args) throws IOException {
+Scanner scanner = new Scanner(System.in);
+// Prompt for number of frames
+System.out.print("Enter number of Frames: ");
+int numberOfFrames = scanner.nextInt();
+// Prompt for number of pages
+System.out.print("Enter number of Pages: ");
+int numberOfPages = scanner.nextInt();
+int[] pages = new int[numberOfPages];
+// Prompt for page references
+System.out.println("Enter the pages: ");
+for (int i = 0; i < numberOfPages; i++) {
+pages[i] = scanner.nextInt();
+}
+// Initialize frames
+int[] frame = new int[numberOfFrames];
+for (int i = 0; i < numberOfFrames; i++) {
+frame[i] = -1; // -1 indicates an empty frame
+}
+int faults = 0;
+int hit = 0;
+// Start processing pages
+for (int i = 0; i < numberOfPages; i++) {
+boolean pageFound = false;
+boolean frameEmpty = false;
+// Check if the page is already in one of the frames
+for (int j = 0; j < numberOfFrames; j++) {
+if (frame[j] == pages[i]) {
+pageFound = true;
+hit++;
+break;
+}
+}
+// If page not found, we need to handle page fault
+if (!pageFound) {
+// Check for an empty frame
+for (int j = 0; j < numberOfFrames; j++) {
+if (frame[j] == -1) {
+frame[j] = pages[i]; // Add the page to the empty frame
+faults++;
+frameEmpty = true;
+break;
+}
+}
+// If no empty frame is found, we must replace a frame
+if (!frameEmpty) {
+int[] temp = new int[numberOfFrames];
+for (int j = 0; j < numberOfFrames; j++) {
+temp[j] = -1; // Initialize temp array to store future references
+for (int k = i + 1; k < numberOfPages; k++) {
+if (frame[j] == pages[k]) {
+temp[j] = k; // Store the next reference index of the page in frame
+break;
+}
+}
+}
+// Find the page with the farthest next use
+int pos = 0;
+int max = temp[0];
+for (int j = 1; j < numberOfFrames; j++) {
+if (temp[j] == -1) { // Found a page that is not referenced again
+pos = j;
+break;
+}
+if (temp[j] > max) {
+max = temp[j];
+pos = j;
+}
+}
+frame[pos] = pages[i]; // Replace the page in the frame
+faults++;
+}
+}
+// Print the current frame state
+for (int j = 0; j < numberOfFrames; j++) {
+System.out.print("\t" + frame[j]);
+}
+System.out.println();
+}
+// Output total page faults and hits
+System.out.println("\nTotal Page Faults: " + faults);
+System.out.println("Total Hits: " + hit);
+// Close the scanner
+scanner.close();
+}
+}
+Output:
